@@ -49,8 +49,71 @@ ifc_decl_star: /* empty */ {
 }
 ;
 
-ifc_decl: TOK_SEMICOLON /* Fill in the other rules */
+ifc_decl: TOK_SEMICOLON /* Fill in the other rules */ {}
+| class_decl {}
+| func_decl {}
+| event_decl {}
+| var_decl {}
 ;
+
+class_decl: TOK_CLASS TOK_IDENT TOK_SEMICOLON {}
+;
+
+func_decl: type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN TOK_SEMICOLON {} /* function without a body */
+| type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body {} /* function with a body, but no ending semicolon */
+| type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body TOK_SEMICOLON {} /* function with a body, and a ending semicolon */
+;
+
+type: base_type {}
+| type_name {}
+;
+
+base_type: basic_type {}
+| TOK_UNSIGNED basic_type {}
+;
+
+basic_type: TOK_VOID {}
+| TOK_BOOL {}
+| TOK_STRING {}
+| TOK_BYTE {}
+| TOK_INT {}
+| TOK_LONG {}
+| TOK_DOUBLE {}
+;
+
+type_name: TOK_IDENT {} /* TODO: not sure what does type_name means, a class name, or something else ? */
+;
+
+func_body: TOK_LBRACE var_decl_star stmt stmt_star TOK_RBRACE {} /* TODO: let's suppose variable declarations should comes before statements */
+;
+
+var_decl_star: /* empty */ {}
+| var_decl_star var_decl {}
+;
+
+stmt_star: /* empty */ {}
+| stmt_star stmt {}
+;
+
+event_decl: TOK_EVENT TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN {}
+; 
+
+var_decl: type var_list TOK_SEMICOLON {}
+;
+
+var_list: var_name {}
+| var_list TOK_COMMA var_name {}
+;
+
+var_name: TOK_ID {}
+| TOK_ID TOK_ASSIGN expr {}
+;
+
+/**
+ * 09/27/2016 5:14PM
+ * To be completed:
+ *     expr, stmt, formal_param
+ */
 
 rule_star: /* fill in */
 ;
