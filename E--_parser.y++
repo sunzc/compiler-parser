@@ -59,7 +59,7 @@ ifc_decl: TOK_SEMICOLON /* Fill in the other rules */ {}
 class_decl: TOK_CLASS TOK_IDENT TOK_SEMICOLON {}
 ;
 
-func_decl: type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN TOK_SEMICOLON {} /* function without a body */
+func_decl: type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMICOLON {} /* function without a body */
 | type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body {} /* function with a body, but no ending semicolon */
 | type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body TOK_SEMICOLON {} /* function with a body, and a ending semicolon */
 ;
@@ -82,6 +82,14 @@ basic_type: TOK_VOID {}
 ;
 
 type_name: TOK_IDENT {} /* TODO: not sure what does type_name means, a class name, or something else ? */
+;
+
+formal_param_star: {} /* empty parameters */
+| formal_param_list {}
+;
+
+formal_param_list : type TOK_IDENT {}
+| formal_param_list TOK_COMMA type TOK_IDENT {}
 ;
 
 func_body: TOK_LBRACE var_decl_star stmt stmt_star TOK_RBRACE {} /* TODO: let's suppose variable declarations should comes before statements */
@@ -193,7 +201,20 @@ stmt_list: stmt {}
 | stmt_list stmt {}
 ;
 
-rule_star: /* fill in */
+rule_star: event_pattern TOK_ARROW stmt {} /* fill in */
 ;
 
+event_pattern: primitive_pattern {}
+| event_pattern TOK_PAT_OR event_pattern {}
+| TOK_PAT_NOT event_pattern {}
+| event_pattern TOK_COLON event_pattern {}
+| event_pattern TOK_PAT_STAR {}
+| TOK_LPAREN event_pattern TOK_RPAREN {}
+;
+
+primitive_pattern: TOK_IDENT TOK_LPAREN param_list TOK_RPAREN {}
+| TOK_IDENT TOK_LPAREN param_list TOK_RPAREN TOK_BITOR expr {}
+;
+
+param_list: 
 %%
