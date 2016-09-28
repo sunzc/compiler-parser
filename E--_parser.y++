@@ -105,8 +105,8 @@ var_list: var_name {}
 | var_list TOK_COMMA var_name {}
 ;
 
-var_name: TOK_ID {}
-| TOK_ID TOK_ASSIGN expr {}
+var_name: TOK_IDENT {}
+| TOK_IDENT TOK_ASSIGN expr {}
 ;
 
 /**
@@ -114,6 +114,84 @@ var_name: TOK_ID {}
  * To be completed:
  *     expr, stmt, formal_param
  */
+expr: TOK_STRCONST {}
+| ref_expr {}
+| assign {} /* assignment */
+| func_invok {}
+| unary_op expr {} /* unary operator op */
+| expr binary_op expr {}
+;
+
+ref_expr: TOK_IDENT {} /* simply a variable name */
+;
+
+assign: ref_expr TOK_EQ expr {}
+;
+
+func_invok: TOK_IDENT TOK_LPAREN expr_star TOK_RPAREN {}
+;
+
+expr_star: /* empty */ {}
+| expr_list {}
+;
+
+expr_list: expr {}
+| expr_list TOK_COMMA expr {}
+;
+
+unary_op: TOK_UMINUS {} /* TODO: how to distinguish TOK_MINUS and TOK_UMINUS */
+| TOK_NOT {}
+| TOK_BITNOT {}
+;
+
+binary_op: TOK_PLUS {}
+| TOK_MINUS {}
+| TOK_MULT {}
+| TOK_DIV {}
+| TOK_AND {}
+| TOK_OR {}
+| TOK_GT {}
+| TOK_LT {}
+| TOK_EQ {}
+| TOK_NE {}
+| TOK_GE {}
+| TOK_LE {}
+| TOK_MOD {}
+| TOK_BITXOR {}
+| TOK_BITAND {}
+| TOK_BITOR {}
+| TOK_SHL {}
+| TOK_SHR {}
+;
+
+stmt: TOK_SEMICOLON {} /* empty statement */
+| if_stmt {}
+| func_invok_stmt {}
+| assign_stmt {}
+| ret_stmt {}
+| compound_stmt {}
+;
+
+if_stmt: TOK_IF TOK_LPAREN expr TOK_RPAREN stmt {}
+| TOK_IF TOK_LPAREN expr TOK_RPAREN stmt TOK_ELSE stmt {}
+;
+
+func_invok_stmt: func_invok TOK_SEMICOLON {}
+;
+
+assign_stmt: assign TOK_SEMICOLON {}
+;
+
+ret_stmt: TOK_RETURN expr TOK_SEMICOLON {}
+;
+
+compound_stmt: TOK_LBRACE stmt_list TOK_RBRACE {} 
+| TOK_LBRACE stmt_list TOK_RBRACE TOK_SEMICOLON {} /* compund statement may optionally followed by a semicolon */
+;
+
+stmt_list: stmt {}
+| stmt_list stmt {}
+;
 
 rule_star: /* fill in */
 ;
