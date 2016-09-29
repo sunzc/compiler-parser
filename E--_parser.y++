@@ -108,7 +108,9 @@ formal_param_list : type TOK_IDENT {
 }
 ;
 
-func_body: TOK_LBRACE var_decl_star stmt stmt_star TOK_RBRACE {} /* TODO: let's suppose variable declarations should comes before statements */
+func_body: TOK_LBRACE var_decl_star stmt stmt_star TOK_RBRACE {
+	prt("FunctionBody");
+} /* TODO: let's suppose variable declarations should comes before statements */
 ;
 
 var_decl_star: /* empty */ {}
@@ -140,7 +142,7 @@ var_name: TOK_IDENT {}
  * To be completed:
  *     expr, stmt, formal_param
  */
-expr: TOK_STRCONST {
+expr: literal {
 	prt("Literal");
 }
 | ref_expr {}
@@ -150,10 +152,19 @@ expr: TOK_STRCONST {
 | expr binary_op expr {}
 ;
 
-ref_expr: TOK_IDENT {} /* simply a variable name */
+literal: TOK_STRCONST {}
+| TOK_UINTNUM {}
+| TOK_DOUBLENUM {}
+;
+ 
+ref_expr: TOK_IDENT {
+	prt("RefExpr");
+} /* simply a variable name */
 ;
 
-assign: ref_expr TOK_EQ expr {}
+assign: ref_expr TOK_EQ expr {
+	prt("Assignment");
+}
 ;
 
 func_invok: TOK_IDENT TOK_LPAREN expr_star TOK_RPAREN {
@@ -182,8 +193,7 @@ binary_op: TOK_PLUS {}
 | TOK_OR {}
 | TOK_GT {}
 | TOK_LT {}
-| TOK_EQ {}
-| TOK_NE {}
+| TOK_EQ {} | TOK_NE {}
 | TOK_GE {}
 | TOK_LE {}
 | TOK_MOD {}
@@ -211,7 +221,9 @@ func_invok_stmt: func_invok TOK_SEMICOLON {
 }
 ;
 
-assign_stmt: assign TOK_SEMICOLON {}
+assign_stmt: assign TOK_SEMICOLON {
+	prt("AssignmentStmt");
+}
 ;
 
 ret_stmt: TOK_RETURN expr TOK_SEMICOLON {}
@@ -241,8 +253,11 @@ rule_decl: event_pattern TOK_ARROW stmt {
 } /* fill in */
 ;
 
-event_pattern: primitive_pattern {
+event_pattern: primitive_pattern{
 	prt("PrimitivePat");
+}
+| primitive_pattern_with_cond{
+	prt("PrimitivePatWithCond");
 }
 | event_pattern TOK_PAT_OR event_pattern {}
 | TOK_PAT_NOT event_pattern {}
@@ -257,7 +272,9 @@ primitive_pattern: TOK_ANY {
 | TOK_IDENT TOK_LPAREN param_list TOK_RPAREN {
 	prt("NormalEvent");
 }
-| TOK_IDENT TOK_LPAREN param_list TOK_RPAREN TOK_BITOR expr {}
+;
+
+primitive_pattern_with_cond: primitive_pattern TOK_BITOR expr {}
 ;
 
 param_list: TOK_IDENT {
