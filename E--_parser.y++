@@ -56,16 +56,24 @@ ifc_decl: TOK_SEMICOLON /* Fill in the other rules */ {}
 | var_decl {}
 ;
 
-class_decl: TOK_CLASS TOK_IDENT TOK_SEMICOLON {}
+class_decl: TOK_CLASS TOK_IDENT TOK_SEMICOLON {
+	prt("ClassDecl");
+}
 ;
 
-func_decl: type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMICOLON {} /* function without a body */
-| type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body {} /* function with a body, but no ending semicolon */
-| type TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN func_body TOK_SEMICOLON {} /* function with a body, and a ending semicolon */
+func_decl: type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMICOLON {
+	prt("FunctionDecl");
+} /* function without a body */
+| type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN func_body {} /* function with a body, but no ending semicolon */
+| type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN func_body TOK_SEMICOLON {} /* function with a body, and a ending semicolon */
 ;
 
-type: base_type {}
-| type_name {}
+type: base_type {
+	prt("Type");
+}
+| type_name {
+	prt("Type");
+}
 ;
 
 base_type: basic_type {}
@@ -84,12 +92,20 @@ basic_type: TOK_VOID {}
 type_name: TOK_IDENT {} /* TODO: not sure what does type_name means, a class name, or something else ? */
 ;
 
-formal_param_star: {} /* empty parameters */
-| formal_param_list {}
+formal_param_star: {
+	prt("FormalParamList");
+} /* empty parameters */
+| formal_param_list {
+	prt("FormalParamList");
+}
 ;
 
-formal_param_list : type TOK_IDENT {}
-| formal_param_list TOK_COMMA type TOK_IDENT {}
+formal_param_list : type TOK_IDENT {
+	prt("FormalParam");
+}
+| formal_param_list TOK_COMMA type TOK_IDENT {
+	prt("FormalParam");
+}
 ;
 
 func_body: TOK_LBRACE var_decl_star stmt stmt_star TOK_RBRACE {} /* TODO: let's suppose variable declarations should comes before statements */
@@ -103,7 +119,9 @@ stmt_star: /* empty */ {}
 | stmt_star stmt {}
 ;
 
-event_decl: TOK_EVENT TOK_IDENT TOK_LPAREN formal_param TOK_RPAREN TOK_SEMICOLON {}
+event_decl: TOK_EVENT TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMICOLON {
+	prt("EventDecl");
+} /* TODO: does event decl allows empty parameters ? */
 ; 
 
 var_decl: type var_list TOK_SEMICOLON {}
@@ -122,7 +140,9 @@ var_name: TOK_IDENT {}
  * To be completed:
  *     expr, stmt, formal_param
  */
-expr: TOK_STRCONST {}
+expr: TOK_STRCONST {
+	prt("Literal");
+}
 | ref_expr {}
 | assign {} /* assignment */
 | func_invok {}
@@ -136,7 +156,9 @@ ref_expr: TOK_IDENT {} /* simply a variable name */
 assign: ref_expr TOK_EQ expr {}
 ;
 
-func_invok: TOK_IDENT TOK_LPAREN expr_star TOK_RPAREN {}
+func_invok: TOK_IDENT TOK_LPAREN expr_star TOK_RPAREN {
+	prt("FunctionInvocation");
+}
 ;
 
 expr_star: /* empty */ {}
@@ -184,7 +206,9 @@ if_stmt: TOK_IF TOK_LPAREN expr TOK_RPAREN stmt {}
 | TOK_IF TOK_LPAREN expr TOK_RPAREN stmt TOK_ELSE stmt {}
 ;
 
-func_invok_stmt: func_invok TOK_SEMICOLON {}
+func_invok_stmt: func_invok TOK_SEMICOLON {
+	prt("FunctionInvocationStmt");
+}
 ;
 
 assign_stmt: assign TOK_SEMICOLON {}
@@ -193,18 +217,33 @@ assign_stmt: assign TOK_SEMICOLON {}
 ret_stmt: TOK_RETURN expr TOK_SEMICOLON {}
 ;
 
-compound_stmt: TOK_LBRACE stmt_list TOK_RBRACE {} 
-| TOK_LBRACE stmt_list TOK_RBRACE TOK_SEMICOLON {} /* compund statement may optionally followed by a semicolon */
+compound_stmt: TOK_LBRACE stmt_list TOK_RBRACE {
+	prt("CompoundStmt");
+} 
+| TOK_LBRACE stmt_list TOK_RBRACE TOK_SEMICOLON {
+	prt("CompoundStmt");
+} /* compund statement may optionally followed by a semicolon */
 ;
 
 stmt_list: stmt {}
 | stmt_list stmt {}
 ;
 
-rule_star: event_pattern TOK_ARROW stmt {} /* fill in */
+rule_star: {
+	errMsg("Must contain at least one rule");
+}
+| rule_decl {}
+| rule_star rule_decl {}
 ;
 
-event_pattern: primitive_pattern {}
+rule_decl: event_pattern TOK_ARROW stmt {
+	prt("Rule");
+} /* fill in */
+;
+
+event_pattern: primitive_pattern {
+	prt("PrimitivePat");
+}
 | event_pattern TOK_PAT_OR event_pattern {}
 | TOK_PAT_NOT event_pattern {}
 | event_pattern TOK_COLON event_pattern {}
@@ -212,11 +251,20 @@ event_pattern: primitive_pattern {}
 | TOK_LPAREN event_pattern TOK_RPAREN {}
 ;
 
-primitive_pattern: TOK_IDENT TOK_LPAREN param_list TOK_RPAREN {}
+primitive_pattern: TOK_ANY {
+	prt("anyEvent");
+} /* TODO: should TOK_ANY be included in a computation ? */
+| TOK_IDENT TOK_LPAREN param_list TOK_RPAREN {
+	prt("NormalEvent");
+}
 | TOK_IDENT TOK_LPAREN param_list TOK_RPAREN TOK_BITOR expr {}
 ;
 
-param_list: TOK_IDENT {} /* TODO not sure whether empty param is allowed or not in event */ 
-| param_list TOK_COMMA TOK_IDENT {}
+param_list: TOK_IDENT {
+	prt("EventFormalParam");
+} /* TODO not sure whether empty param is allowed or not in event */ 
+| param_list TOK_COMMA TOK_IDENT {
+	prt("EventFormalParam");
+}
 ;
 %%

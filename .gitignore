@@ -1,4 +1,5 @@
 demo
+E--.tab.h
 *.o
 *.swp
 E--_parser.C
@@ -6,3 +7,4 @@ E--_parser.output
 tags
 demo_output
 sample_output
+test/demo*
