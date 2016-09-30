@@ -347,9 +347,13 @@ primitive_pattern_with_cond: primitive_pattern TOK_BITOR expr {}
 primitive_pattern: TOK_ANY {
 	prt("anyEvent");
 } /* TODO: should TOK_ANY be included in a computation ? */
-| TOK_IDENT TOK_LPAREN param_list TOK_RPAREN {
+| TOK_IDENT TOK_LPAREN param_star TOK_RPAREN {
 	prt("NormalEvent");
 }
+;
+param_star: /* empty */ {
+}
+| param_list {}
 ;
 
 param_list: TOK_IDENT {
