@@ -93,7 +93,7 @@ stmt: TOK_SEMICOLON {} /* empty statement */
 | ret_stmt {}
 | if_stmt {}
 | func_invok_stmt {}
-| compound_stmt {}
+| compound_stmt {} /* TODO : second conflict*/
 | compound_stmt_without_semicolon {}
 ;
 
@@ -112,7 +112,7 @@ func_invok_stmt: func_invok TOK_SEMICOLON {
 }
 ;
 
-if_stmt: TOK_IF lp_expr_rp stmt {
+if_stmt: TOK_IF lp_expr_rp stmt { /* TODO : first conflict */
 	prt("IfThenStmt");
 }
 | TOK_IF lp_expr_rp stmt TOK_ELSE stmt {
@@ -140,10 +140,26 @@ var_decl_star: /* empty */ {}
 class_decl: TOK_CLASS TOK_IDENT TOK_SEMICOLON {
 	prt("ClassDecl");
 }
+| TOK_CLASS error TOK_SEMICOLON {
+	errMsg("Syntax error in class declaration: expecting class name");
+}
+;
 
 event_decl: TOK_EVENT TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMICOLON {
 	prt("EventDecl");
-} /* TODO: does event decl allows empty parameters ? */
+} /* TODO : does event decl allows empty parameters ? */
+| TOK_EVENT error TOK_SEMICOLON{
+	errMsg("Expected an event name");
+}
+| TOK_EVENT TOK_IDENT error TOK_SEMICOLON{ /* TODO : third conflict */
+	errMsg("Error in event declaration: missing event name or \"(\"");
+}
+| TOK_EVENT TOK_IDENT TOK_LPAREN error TOK_SEMICOLON{
+	errMsg("Error in event declaration, expecting formal parameters");
+}
+| TOK_EVENT TOK_IDENT TOK_LPAREN formal_param_star error TOK_SEMICOLON {
+	errMsg("Error in parsing event parameters, may be a missing \")\"");
+}
 ; 
 
 formal_param_star: {
@@ -184,6 +200,9 @@ basic_type: TOK_VOID {}
 ;
 
 var_decl: type var_list TOK_SEMICOLON {}
+| type error TOK_SEMICOLON {
+	errMsg("Error in variable declaration, may be a missing identifier");
+}
 ;
 
 var_list: var_name {}
