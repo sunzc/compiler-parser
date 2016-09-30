@@ -93,7 +93,7 @@ stmt: TOK_SEMICOLON {} /* empty statement */
 | ret_stmt {}
 | if_stmt {}
 | func_invok_stmt {}
-| compound_stmt {} /* TODO : second conflict*/
+| compound_stmt {} 
 | compound_stmt_without_semicolon {}
 ;
 
@@ -102,6 +102,7 @@ compound_stmt_without_semicolon: TOK_LBRACE stmt_list TOK_RBRACE{
 }
 ;
 
+/* TODO : second conflict*/
 compound_stmt: TOK_LBRACE stmt_list TOK_RBRACE TOK_SEMICOLON{
 	prt("CompoundStmt");
 }
@@ -125,7 +126,9 @@ lp_expr_rp: TOK_LPAREN expr TOK_RPAREN {
 }
 ;
 
-ret_stmt: TOK_RETURN expr TOK_SEMICOLON {}
+ret_stmt: TOK_RETURN expr TOK_SEMICOLON {
+	prt("RetStmt");
+}
 ;
 
 assign_stmt: assign TOK_SEMICOLON {
@@ -156,9 +159,6 @@ event_decl: TOK_EVENT TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN TOK_SEMI
 }
 | TOK_EVENT TOK_IDENT TOK_LPAREN error TOK_SEMICOLON{
 	errMsg("Error in event declaration, expecting formal parameters");
-}
-| TOK_EVENT TOK_IDENT TOK_LPAREN formal_param_star error TOK_SEMICOLON {
-	errMsg("Error in parsing event parameters, may be a missing \")\"");
 }
 ; 
 
