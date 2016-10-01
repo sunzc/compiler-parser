@@ -72,16 +72,34 @@ ifc_decl: TOK_SEMICOLON /* Fill in the other rules */ {}
 ;
 
 func_decl: func_decl_basic TOK_SEMICOLON {}
+| func_decl_basic func_body {} /* TODO: function with a body, but with ending semicolon */
 | func_decl_basic func_body TOK_SEMICOLON {} /* TODO: function with a body, but with ending semicolon */
 ;
 
 func_decl_basic: type TOK_IDENT TOK_LPAREN formal_param_star TOK_RPAREN {
 	prt("FunctionDecl");
 } /* function without a body */
+| type TOK_IDENT TOK_LPAREN error TOK_RPAREN{
+	errMsg("Syntax error in formal parameter declaration");
+}
+| type TOK_IDENT TOK_LPAREN error TOK_SEMICOLON{
+	errMsg("Syntax error in formal parameter declaration");
+}
+| type error TOK_RPAREN{
+	errMsg("Expecting a function declaration -- may be a missing function name");
+}
+| type TOK_IDENT TOK_LPAREN formal_param_list error TOK_SEMICOLON {
+	yyerrok;
+	errMsg("Syntax error in function declaration");
+}
+;
 
 func_body: TOK_LBRACE var_decl_star stmt_list TOK_RBRACE {
 	prt("FunctionBody");
 } /* TODO: let's suppose variable declarations should comes before statements */
+| TOK_LBRACE var_decl_star error TOK_RBRACE {
+	errMsg("Syntax error, expecting a function declaration");
+}
 ;
 
 stmt_list: stmt {}
@@ -95,10 +113,16 @@ stmt: TOK_SEMICOLON {} /* empty statement */
 | func_invok_stmt {}
 | compound_stmt {} 
 | compound_stmt_without_semicolon {}
+| error TOK_SEMICOLON{
+	errMsg("Syntax error while parsing a statement");
+}
 ;
 
 compound_stmt_without_semicolon: TOK_LBRACE stmt_list TOK_RBRACE{
 	prt("CompoundStmt");
+}
+| TOK_LBRACE error TOK_RBRACE {
+	errMsg("Syntax error while parsing a statement");
 }
 ;
 
@@ -118,6 +142,9 @@ if_stmt: TOK_IF lp_expr_rp stmt { /* TODO : first conflict */
 }
 | TOK_IF lp_expr_rp stmt TOK_ELSE stmt {
 	prt("IfThenElseStmt");
+}
+| TOK_IF lp_expr_rp stmt TOK_ELSE error{
+	errMsg("Syntax error while parsing a statement");
 }
 ;
 
@@ -307,6 +334,10 @@ expr_list: expr {}
 assign: ref_expr TOK_ASSIGN expr {
 	prt("Assignment");
 }
+| ref_expr TOK_ASSIGN error TOK_SEMICOLON {
+	errMsg("Syntax error in assignment");
+	yyerrok;
+}
 ;
 
 ref_expr: TOK_IDENT {
@@ -330,11 +361,17 @@ rule_star: /* empty */ {
 ;
 rule_list: rule_decl {}
 | rule_list rule_decl {}
+| rule_list error TOK_SEMICOLON {
+	errMsg("Error, expecting a rule");
+}
 ;
 
 rule_decl: event_pattern TOK_ARROW stmt {
 	prt("Rule");
 } /* fill in */
+| event_pattern error TOK_SEMICOLON{
+	errMsg("Syntax error, skipping event pattern");
+}
 ;
 
 event_pattern: primitive_pattern{
